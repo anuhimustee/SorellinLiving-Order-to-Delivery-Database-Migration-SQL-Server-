@@ -1,0 +1,51 @@
+﻿Field,Expected_Type,Nullability_Guidance,Definition
+Legacy_Row_ID,Text,No/Review,Source observation identifier; exact duplicates retain the same value.
+Order_No,Text,No/Review,Legacy source value for order no. Treat as a business reference until profiling confirms uniqueness and grain.
+Order_DateTime,Date/Time,No/Review,Legacy source value for order datetime. Expected as a date or timestamp; a small number of legacy formatting inconsistencies may exist.
+Customer_ID,Text,No/Review,Legacy source value for customer id. Treat as a business reference until profiling confirms uniqueness and grain.
+Customer_Name,Text,No/Review,Legacy source value for customer name.
+Customer_Email,Text,No/Review,Legacy source value for customer email.
+Customer_Type,Text,No/Review,Legacy source value for customer type.
+Delivery_Address_Line,Text,Conditional,Legacy source value for delivery address line.
+Delivery_City,Text,Conditional,Legacy source value for delivery city.
+Delivery_Postal_Code,Text,Conditional,Legacy source value for delivery postal code. Treat as a business reference until profiling confirms uniqueness and grain.
+Delivery_Country,Text,Conditional,Legacy source value for delivery country.
+Sales_Channel,Text,No/Review,Legacy source value for sales channel.
+Order_Status,Text,No/Review,Legacy source value for order status.
+Order_Line_No,Text,No/Review,Legacy source value for order line no. Treat as a business reference until profiling confirms uniqueness and grain.
+Product_SKU,Text,No/Review,Legacy source value for product sku.
+Product_Name,Text,No/Review,Legacy source value for product name.
+Product_Category,Text,No/Review,Legacy source value for product category.
+Unit_Weight_kg,Decimal,No/Review,Legacy source value for unit weight kg.
+Unit_Price_EUR,Decimal,No/Review,Legacy source value for unit price eur.
+Quantity_Ordered,Integer,No/Review,Legacy source value for quantity ordered.
+Warehouse_Code,Text,No/Review,Legacy source value for warehouse code. Treat as a business reference until profiling confirms uniqueness and grain.
+Warehouse_Name,Text,No/Review,Legacy source value for warehouse name.
+Warehouse_City,Text,No/Review,Legacy source value for warehouse city.
+Warehouse_Country,Text,No/Review,Legacy source value for warehouse country.
+Shipment_No,Text,No/Review,Legacy source value for shipment no. Treat as a business reference until profiling confirms uniqueness and grain.
+Shipment_Created_DateTime,Date/Time,No/Review,Legacy source value for shipment created datetime. Expected as a date or timestamp; a small number of legacy formatting inconsistencies may exist.
+Shipment_Line_Quantity,Integer,No/Review,Quantity of the order line assigned to the shipment.
+Carrier_Code,Text,No/Review,Legacy source value for carrier code. Treat as a business reference until profiling confirms uniqueness and grain.
+Carrier_Name,Text,No/Review,Legacy source value for carrier name.
+Carrier_Service_Level,Text,No/Review,Legacy source value for carrier service level.
+Tracking_No,Text,No/Review,Legacy source value for tracking no. Treat as a business reference until profiling confirms uniqueness and grain.
+Planned_Dispatch_Date,Date/Time,No/Review,Legacy source value for planned dispatch date. Expected as a date or timestamp; a small number of legacy formatting inconsistencies may exist.
+Actual_Dispatch_DateTime,Date/Time,No/Review,Legacy source value for actual dispatch datetime. Expected as a date or timestamp; a small number of legacy formatting inconsistencies may exist.
+Promised_Delivery_Date,Date/Time,Conditional,Legacy source value for promised delivery date. Expected as a date or timestamp; a small number of legacy formatting inconsistencies may exist.
+Tracking_Event_ID,Text,No/Review,Legacy event identifier.
+Event_Sequence_Legacy,Integer,No/Review,Legacy source value for event sequence legacy.
+Tracking_Event_Code,Text,No/Review,Legacy source value for tracking event code. Treat as a business reference until profiling confirms uniqueness and grain.
+Tracking_Event_Description,Text,No/Review,Legacy source value for tracking event description.
+Tracking_Event_DateTime,Date/Time,No/Review,Legacy source value for tracking event datetime. Expected as a date or timestamp; a small number of legacy formatting inconsistencies may exist.
+Event_Location,Text,No/Review,Legacy source value for event location.
+Event_City,Text,No/Review,Legacy source value for event city.
+Event_Country,Text,No/Review,Legacy source value for event country.
+Delivery_DateTime,Date/Time,Conditional,Blank until the shipment is delivered.
+Exception_Code,Text,Conditional,Legacy source value for exception code. Treat as a business reference until profiling confirms uniqueness and grain.
+Exception_Description,Text,Conditional,Legacy source value for exception description.
+Proof_of_Delivery_Ref,Text,Conditional,Legacy source value for proof of delivery ref.
+Freight_Cost_EUR,Decimal,No/Review,Legacy source value for freight cost eur.
+Currency,Text,No/Review,Legacy source value for currency.
+On_Time_Flag_Legacy,Text,No/Review,Legacy result supplied only on delivered-event rows.
+Delivery_Days_Legacy,Text,Conditional,Legacy source value for delivery days legacy.
