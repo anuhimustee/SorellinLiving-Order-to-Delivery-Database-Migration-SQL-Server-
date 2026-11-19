@@ -1,7 +1,8 @@
 # Operation RouteGlass: Order-to-Delivery Database Migration (SQL Server)
 
-> [!NOTE]
-> ⚠️ Disclaimer: Sorellin Living B.V. does not exist. Every customer, warehouse, carrier and shipment in this repository is simulated: fictional names attached to simulated data, built to simulate a real legacy-migration problem for this fictional organization The data isn’t real, but the work is. Every figure here comes from my own SQL against that dataset, and every row is reconciled back to the source. Think of it as a test track for logistics analytics: the parcels never moved, but the engine is real.
+> [!NOTE] 
+> Sorellin Living B.V. does not exist. Every customer, warehouse, carrier and shipment in this repository is simulated: fictional names attached to simulated data, built to simulate a real legacy-migration problem for this fictional organization The data isn’t real, but the work is. Every figure here comes from my own SQL against that dataset, and every row is reconciled back to the source. Think of it as a test track for logistics analytics: the parcels never moved, but the engine is real.
+
 
 > *I migrated an 18,000-row legacy delivery extract into a 13-table, 3NF SQL Server database, accounted for every source row, and showed why the legacy report overstated freight cost six times (€243,578 instead of €40,249). Sorellin needs that fixed before it renegotiates its carrier contracts.*
 
