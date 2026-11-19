@@ -70,9 +70,8 @@
 | Data Storage | Microsoft SQL Server (`SorellinLivingDB`, with `stg`, `map`, `audit` and `core` schemas) |
 | Data Processing | T-SQL: `BULK INSERT`, `TRY_CONVERT`, mapping tables, guarded scripts |
 | Analysis | T-SQL: joins, CTEs, views, window functions (`LAG`, `ROW_NUMBER`, `RANK`, rolling `SUM`) |
-| Data Modelling | dbdiagram.io (DBML) |
 | Version Control | Git / GitHub |
-| Documentation | Markdown, migration report (PDF), presentation (PowerPoint) |
+| Documentation | Markdown, migration report (PDF) |
 
 ---
 
@@ -97,9 +96,9 @@ operation-routeglass/
 │   ├── 08_validation_and_reconciliation.sql
 │   └── 09_business_queries.sql             # 12 business queries
 │
-├── erd/
-│   ├── RouteGlass_ERD.png
-│   └── erd_option_b_surrogate_keys.dbml    # Paste into dbdiagram.io to regenerate
+├── visuals/
+│   ├── ERD 1.png
+│   ├── ERD 2.png
 │
 ├── docs/
 │   ├── Migration_Report.pdf
@@ -233,31 +232,16 @@ Every table also carries `IsActive`, `CreatedAt` and `UpdatedAt`. Transaction ta
 
 ## 7. Entity Relationship Diagram (ERD)
 
-```mermaid
-erDiagram
-    CITY |o--o{ CUSTOMER : "located in"
-    CITY ||--o{ LOCATION : "has"
-    LOCATION ||--o| WAREHOUSE : "is a"
-    CUSTOMER ||--o{ SALES_ORDER : "places"
-    SALES_ORDER ||--|{ ORDER_LINE : "contains"
-    PRODUCT ||--o{ ORDER_LINE : "ordered as"
-    SALES_ORDER ||--|{ SHIPMENT : "shipped in"
-    WAREHOUSE ||--o{ SHIPMENT : "dispatches"
-    CARRIER ||--o{ SHIPMENT : "carries"
-    SHIPMENT ||--|{ SHIPMENT_LINE : "contains"
-    ORDER_LINE ||--|{ SHIPMENT_LINE : "fulfilled by"
-    SHIPMENT_LINE ||--|{ TRACKING_EVENT : "scanned as"
-    EVENT_TYPE ||--o{ TRACKING_EVENT : "classifies"
-    LOCATION ||--o{ TRACKING_EVENT : "scanned at"
-    EXCEPTION_TYPE |o--o{ TRACKING_EVENT : "flags"
-```
-*13 tables. The full column-level ERD is in [`erd/`](erd/).*
+![Entity Relationship Diagram](https://github.com/anuhimustee/SorellinLiving-Order-to-Delivery-Database-Migration-SQL-Server-/blob/main/visuals/ERD%201.png)
+
+
+> ***13 tables fully captured***
 
 **Table Relationships Summary** (15 foreign keys)
 
 | Relationship | Join Key | Type |
 |-------------|----------|------|
-| `Customer` → `City` | `CitySK` (optional) | Many-to-One |
+| `Customer` → `City` | `CitySK` | Many-to-One |
 | `Location` → `City` | `CitySK` | Many-to-One |
 | `Warehouse` → `Location` | `LocationSK` | One-to-One |
 | `Sales_Order` → `Customer` | `CustomerSK` | Many-to-One |
@@ -271,7 +255,7 @@ erDiagram
 | `Tracking_Event` → `Shipment_Line` | `ShipmentLineSK` | Many-to-One |
 | `Tracking_Event` → `Event_Type` | `EventTypeSK` | Many-to-One |
 | `Tracking_Event` → `Location` | `LocationSK` | Many-to-One |
-| `Tracking_Event` → `Exception_Type` | `ExceptionTypeSK` (optional) | Many-to-One |
+| `Tracking_Event` → `Exception_Type` | `ExceptionTypeSK` | Many-to-One |
 
 ---
 
@@ -309,10 +293,84 @@ The work had two stages. The first was **verification**: prove that the migrated
 
 ## 9. Key Insights
 
-**Insight 1: The legacy report overstated freight six times**
+### **Insight 1: The legacy report overstated freight six times**<br>
 Freight is repeated on every tracking-event row, so summing it straight from the file gives €243,578.01. Summed once per shipment line, it is €40,249.18. Any carrier cost comparison built on the old report would have started from the wrong number. This is a grain problem, not a data entry problem.
 
-**Insight 2: Most late deliveries started at the warehouse**
+### **Insight 2: Most late deliveries started at the warehouse**<br>
 Of the 843 late lines, 598 (71%) were dispatched late, and only 245 left on time and were then delayed by the carrier. Lille has the weakest dispatch record: 57.3% of its shipments left late, against 46–48% at the other three warehouses. A carrier negotiation that ignores dispatch would target the smaller part of the problem. *(This shows where delays began, not their full cause.)*
 
-**Insight 3: Priority service is the least reliable, at 
+### **Insight 3: Priority service is the least reliable, at every carrier**<br>
+Priority has the highest late rate at all 6 carriers (37–58%). Customers paying for faster delivery are the most likely to receive it late. That points to promised lead times that the network cannot meet, not to one bad carrier.
+
+### **Insight 4: The carrier ranking is robust, and one carrier has a scanning gap**<br>
+NordRoute has the highest late rate (35.86%) and Alpina the lowest (22.08%). Without the 609 lines that have timestamp conflicts, the ranking is unchanged (36.67% and 20.62%), so the result can be used in the negotiation. All 46 missing `HUB_OUT` scans belong to NordRoute at Liège Hub. That is a specific, fixable data-quality obligation.
+
+### **Insight 5: Hubs are not the bottleneck**<br>
+Every hub averages about 14 hours between `HUB_IN` and `HUB_OUT`. With dwell time this even, hub handling does not explain the differences between carriers or warehouses.
+
+### **Insight 6: Lateness is not rising, even though complaints are**<br>
+The rolling 3-month late rate fell from 34.21% (February 2025) to 26.47% (December 2025). If complaints rose anyway, something other than delivery lateness (such as service expectations or communication) is likely driving them. That needs data this extract doesn't hold.
+
+---
+
+## 10. Recommendations
+
+**Decision: Conditional go.** The database does what leadership asked: any order can be traced end to end, and every row reconciles. Go live on the conditions below.
+
+| Priority | Recommendation | Based On | Suggested Owner |
+|----------|---------------|----------|-----------------|
+| High | Bring warehouse dispatch into the carrier negotiation story, and start a dispatch review at Lille (57.3% late dispatch) before blaming carriers for the full delay | Insight 2 | Head of Fulfilment / Operations |
+| High | Require NordRoute to fix its missing `HUB_OUT` scans at Liège Hub as a contract condition, with a scan-completeness target | Insight 4 | Carrier Management / Procurement |
+| High | Retire the legacy report's freight figure and report freight only from `Shipment_Line` | Insight 1 | Finance / BI team |
+| Medium | Review promised lead times for Priority service with each carrier, since all 6 miss it most often | Insight 3 | Commercial / Carrier Management |
+| Medium | Investigate the 613 out-of-sequence timestamps with the carriers, to find whether scanners or clocks are at fault | Insight 4, reconciliation | Carrier Management with IT |
+| Medium | Source sales channel from the order system, not the delivery extract, and add it to `Sales_Order` | Scope exclusion | Data / IT team |
+| Low | Analyse complaint data against delivery performance, to find what is driving complaints if not lateness | Insight 6 | Customer Service with Data team |
+
+---
+
+## 11. Assumptions & Limitations
+
+### Assumptions
+- The extract was treated as the complete record for 2025. It was not checked against record counts in the source systems.
+- Hub city and country were taken from the real location of each hub (a location master). The source country column was unreliable: each hub appeared with all four countries.
+- Where scans were repeated (same line, event, time and location), the lowest event ID was kept as the genuine scan.
+- "Late" means the delivery date is after the promised date, compared at day level. This matches 100% of the legacy on-time flags and LATE alerts.
+- The 4 orders dated 1–2 January 2026 were kept, because excluding them is a scope decision for the business.
+
+### Limitations
+- **No sales channel analysis.** The channel changes within almost every order, so it couldn't be migrated or analysed.
+- **Cause vs. location of delay.** Late dispatch shows where a delay began, not why. A late dispatch can still be followed by a slow carrier leg.
+- **Line-level weighting.** Late rates are counted per delivered shipment line, so shipments with more lines carry more weight. Dispatch rates are counted per shipment.
+- **Unresolved timestamps.** 613 events are timed earlier than the milestone before them. They were kept and flagged, not corrected, so time-between-milestone measures exclude them.
+- **Unverifiable fields.** 657 customers have postal codes that don't match national formats. They were kept as supplied, because there was no reference data to correct them.
+- **No complaint data.** The rise in complaints couldn't be linked directly to delivery performance.
+- **Training data.** The case is fictional and covers one year, so seasonality can't be tested across years.
+
+> *The goal here is pre-emptive Q&A. What would a thoughtful skeptic push back on? Document the answer here, before they ask.*
+
+---
+
+## 12. Deliverables
+
+| Deliverable | Description | Location |
+|-------------|-------------|----------|
+| SQL pipeline | 9 numbered, rerunnable scripts: database, staging, load, profiling and cleaning, schema, migration, constraints, reconciliation, business queries | [`/sql_scripts`]([sql/](https://github.com/anuhimustee/SorellinLiving-Order-to-Delivery-Database-Migration-SQL-Server-/tree/main/sql_scripts)) |
+| ERD | 13-table 3NF model with keys and cardinalities (image + DBML) | [`/visuals`]([erd/](https://github.com/anuhimustee/SorellinLiving-Order-to-Delivery-Database-Migration-SQL-Server-/blob/main/visuals/ERD%201.png)) |
+| Exception log | Every rejected, standardised, excluded or flagged value, with its rule code | `audit.Exception_Log` (built by script 04) |
+| Migration report | Profiling findings, design decisions, reconciliation results and go/no-go recommendation |  [`/docs/SorellingLivingMigrationDocument`](https://github.com/anuhimustee/SorellinLiving-Order-to-Delivery-Database-Migration-SQL-Server-/blob/main/docs/SorellinLiving%20MigrationDocumentGithub.pdf) |
+
+
+---
+
+## 14. Author
+
+**Sir Mustee**<br>
+Data Analyst • Logistics Analyst • Supply Chain Analyst
+
+- 🔗[LinkedIn](https://www.linkedin.com/in/anuhi-mustapha/)
+- 💼[Medium Article link](https://medium.com/@helloanuhi/operation-threshold-debt-burden-risk-first-payment-default-analysis-08869f9852d3)
+
+---
+
+> ***Last updated: Nov 2026***
