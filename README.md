@@ -370,7 +370,7 @@ The rolling 3-month late rate fell from 34.21% (February 2025) to 26.47% (Decemb
 Data Analyst • Logistics Analyst • Supply Chain Analyst
 
 - 🔗[LinkedIn](https://www.linkedin.com/in/anuhi-mustapha/)
-- 💼[Medium Article link](https://medium.com/@helloanuhi/operation-threshold-debt-burden-risk-first-payment-default-analysis-08869f9852d3)
+- 💼[Medium Article link](https://medium.com/@helloanuhi/sorellin-was-about-to-blame-its-carriers-18-000-rows-of-data-said-check-your-own-warehouse-first-e8ea70d65e3e)
 
 ---
 
